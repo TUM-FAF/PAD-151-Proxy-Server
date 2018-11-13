@@ -1,0 +1,28 @@
+version: '3'
+services:
+  cassandra:
+    image: cassandra
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+  redis:
+    image: redis
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
+  proxy:
+    build: ./proxy
+    command: bundle exec app.rb
+    volumes:
+      - .:/myapp
+    ports:
+      - "9292:9292"
+    depends_on:
+      - redis
+  warehouse:
+    build: ./warehouse
+    command: bundle exec app.rb
+    volumes:
+      - .:/myapp
+    ports:
+      - "9191:9191"
+    depends_on:
+      - cassandra
