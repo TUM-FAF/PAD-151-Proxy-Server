@@ -4,7 +4,8 @@ RUN mkdir /myapp
 WORKDIR /myapp
 COPY . /myapp
 RUN bundle install
-# change port if needed
-EXPOSE 9191
+ENV WAREHOUSE_PORT 9191
+EXPOSE $WAREHOUSE_PORT
+
 # run the application
-CMD ["bundle", "exec", "app.rb"]
+CMD ["bundle", "exec", "ruby", "app.rb"]
