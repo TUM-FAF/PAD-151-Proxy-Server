@@ -12,6 +12,8 @@ services:
 
   proxy:
     build: ./proxy
+    volumes:
+      - ./proxy:/myapp
     ports:
       - "9292:9292"
     expose:
@@ -20,9 +22,13 @@ services:
       - redis
     environment:
       - PROXY_PORT=9292
+    restart:
+      "always"
 
   warehouse:
     build: ./warehouse
+    volumes:
+      - ./warehouse:/myapp
     ports:
       - "9191:9191"
     expose:
@@ -31,3 +37,5 @@ services:
       - cassandra
     environment:
     - WAREHOUSE_PORT=9191
+    restart:
+      "always"
