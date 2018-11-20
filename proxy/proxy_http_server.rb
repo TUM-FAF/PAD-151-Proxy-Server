@@ -1,4 +1,5 @@
 require 'eventmachine'
+require 'em-http-request'
 require 'evma_httpserver'
 
 class ProxyHttpServer < EM::Connection
@@ -22,10 +23,19 @@ class ProxyHttpServer < EM::Connection
     #   @http_post_content
     #   @http_headers
 
-    response = EM::DelegatedHttpResponse.new(self)
-    response.status = 200
-    response.content_type 'text/html'
-    response.content = '<center><h1>Hello World</h1></center>'
-    response.send_response
+    http = EventMachine::HttpRequest.new('http://warehouse:9191').get
+    http.errback { p 'Uh oh'}
+
+    http.callback do
+      p http.response_header.status
+      p http.response_header
+      p http.response
+      content = http.response
+      response = EM::DelegatedHttpResponse.new(self)
+      response.status = 200
+      response.content_type 'text/html'
+      response.content = "<center>#{content}</center>"
+      response.send_response
+    end
   end
 end
