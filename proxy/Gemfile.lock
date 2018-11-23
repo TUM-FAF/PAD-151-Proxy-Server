@@ -10,6 +10,8 @@ GEM
       em-socksify (>= 0.3)
       eventmachine (>= 1.0.3)
       http_parser.rb (>= 0.6.0)
+    em-redis (0.3.0)
+      eventmachine
     em-socksify (0.3.2)
       eventmachine (>= 1.0.0.beta.4)
     eventmachine (1.2.7)
@@ -22,6 +24,7 @@ PLATFORMS
 
 DEPENDENCIES
   em-http-request
+  em-redis
   eventmachine
   eventmachine_httpserver
 

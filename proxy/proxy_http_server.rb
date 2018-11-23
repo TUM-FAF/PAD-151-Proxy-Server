@@ -1,14 +1,16 @@
 require 'eventmachine'
 require 'em-http-request'
 require 'evma_httpserver'
+require_relative 'http_cache'
 
 class ProxyHttpServer < EM::Connection
   include EM::HttpServer
+  include HttpCache
 
-   def post_init
-     super
-     no_environment_strings
-   end
+  def post_init
+    super
+    no_environment_strings
+  end
 
   def process_http_request
     # the http request details are available via the following instance variables:
