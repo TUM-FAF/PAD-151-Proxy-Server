@@ -17,6 +17,9 @@ GEM
     eventmachine (1.2.7)
     eventmachine_httpserver (0.2.1)
     http_parser.rb (0.6.0)
+    mini_portile2 (2.3.0)
+    nokogiri (1.8.5)
+      mini_portile2 (~> 2.3.0)
     public_suffix (3.0.3)
 
 PLATFORMS
@@ -27,6 +30,7 @@ DEPENDENCIES
   em-redis
   eventmachine
   eventmachine_httpserver
+  nokogiri (~> 1.6, >= 1.6.8)
 
 BUNDLED WITH
    1.17.1
