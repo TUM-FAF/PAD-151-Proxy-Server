@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<joke>
+	<text>Best Joke ever!</text>
+	<author>Dragos Strainu</author>
+    <extra>
+        <tags>
+            <tag>joke</tag>
+        </tags>
+        <link>http://example.com</link>
+    </extra>
+</joke>
