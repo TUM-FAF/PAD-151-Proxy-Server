@@ -2,8 +2,8 @@ require 'nokogiri'
 
 module XMLValidator
 
-    def self.validate(xml)
-        xsd = Nokogiri::XML::Schema(File.read("post_joke.xsd"))
+    def self.validate(xml, xsd_schema)
+        xsd = Nokogiri::XML::Schema(xsd_schema)
         doc = Nokogiri::XML(xml)
 
         errors = []
@@ -12,9 +12,6 @@ module XMLValidator
             errors.push(error.message)
         end
 
-        return true if errors == []
-        errors
+        return [errors.empty?, errors]
     end
 end
-
-puts XMLValidator.validate(File.read('joke.xml'))
