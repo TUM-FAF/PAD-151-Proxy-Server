@@ -6,10 +6,15 @@ module XMLValidator
         xsd = Nokogiri::XML::Schema(File.read("post_joke.xsd"))
         doc = Nokogiri::XML(xml)
 
+        errors = []
+        
         xsd.validate(doc).each do |error|
-            puts error.message
+            errors.push(error.message)
         end
+
+        return true if errors == []
+        errors
     end
 end
 
-XMLValidator.validate(File.read('joke.xml'))
+puts XMLValidator.validate(File.read('joke.xml'))
