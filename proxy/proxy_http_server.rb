@@ -25,8 +25,8 @@ class ProxyHttpServer < EM::Connection
     #   @http_post_content
     #   @http_headers
 
-    http = EventMachine::HttpRequest.new('http://warehouse:9191').get
-    http.errback { p 'Uh oh'}
+    http = EM::HttpRequest.new('http://warehouse:9191').get
+    http.errback { p "Uh oh #{http.error}" }
 
     http.callback do
       p http.response_header.status
