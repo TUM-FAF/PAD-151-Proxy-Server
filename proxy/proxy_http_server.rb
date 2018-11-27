@@ -9,11 +9,11 @@ class ProxyHttpServer < EM::Connection
 
   def post_init
     super
+    init_cache
     no_environment_strings
   end
 
   def process_http_request
-    # the http request details are available via the following instance variables:
     #   @http_protocol
     #   @http_request_method
     #   @http_cookie
@@ -25,7 +25,28 @@ class ProxyHttpServer < EM::Connection
     #   @http_post_content
     #   @http_headers
 
-    http = EM::HttpRequest.new('http://warehouse:9191').get
+    puts "info"
+    puts @http_headers
+    puts @http_request_method
+    puts @http_request_uri
+
+    cache_key = @http_request_method + ' ' + @http_request_uri
+    cache = try_restore_from_cache(cache_key)
+    puts "I have '#{cache_key}': #{cache}"
+
+    if cache != nil
+      send_cached_response(nil, cache, 'text/html')
+    else
+      forward_request
+    end
+  end
+
+  def send_cached_response(headers, cache, content_type)
+    send_response(headers, cache, content_type)
+  end
+
+  def forward_request
+    http = EventMachine::HttpRequest.new('http://warehouse:9191').get
     http.errback { p "Uh oh #{http.error}" }
 
     http.callback do
@@ -33,11 +54,17 @@ class ProxyHttpServer < EM::Connection
       p http.response_header
       p http.response
       content = http.response
-      response = EM::DelegatedHttpResponse.new(self)
-      response.status = 200
-      response.content_type 'text/html'
-      response.content = "<center>#{content}</center>"
-      response.send_response
+      cache_key = @http_request_method + ' ' + @http_request_uri
+      store_in_cache(cache_key, content)
+      send_response(http.response_header, content)
     end
+  end
+
+  def send_response(headers, body, content_type = 'text/html', status = 200)
+    response = EM::DelegatedHttpResponse.new(self)
+    response.status = status
+    response.content_type content_type
+    response.content = body
+    response.send_response
   end
 end
