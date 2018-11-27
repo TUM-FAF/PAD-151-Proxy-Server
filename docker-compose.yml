@@ -9,6 +9,8 @@ services:
     image: redis
     volumes:
       - ./tmp/redis:/var/lib/redis/data
+    expose:
+      - 6379
 
   proxy:
     build: ./proxy
