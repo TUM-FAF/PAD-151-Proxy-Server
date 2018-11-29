@@ -1,4 +1,5 @@
 require 'socket' # Provides TCPServer and TCPSocket classes
+require_relative 'connect_db'
 
 puts "Running server on localhost:#{ENV['WAREHOUSE_PORT']}"
 
@@ -8,7 +9,8 @@ while (session = server.accept)
   request = session.gets
   puts request
 
-  body = "Hello world! The time is #{Time.now}"
+  
+  body = ConnectDB.query.join("\n")
 
   headers = ["HTTP/1.1 200 OK",
     "Date: #{Time.now}",
