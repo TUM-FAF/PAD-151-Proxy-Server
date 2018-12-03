@@ -2,10 +2,12 @@ require 'eventmachine'
 require 'em-http-request'
 require 'evma_httpserver'
 require_relative 'http_cache'
+require_relative 'converter'
 
 class ProxyHttpServer < EM::Connection
   include EM::HttpServer
   include HttpCache
+  include Converter
 
   def post_init
     super
@@ -25,45 +27,62 @@ class ProxyHttpServer < EM::Connection
     #   @http_post_content
     #   @http_headers
 
+    @headers = @http_headers.split("\x00").map{ |e| e.split(': ', 2) }.to_h
     puts "info"
-    puts @http_headers
+    p @headers
     puts @http_request_method
     puts @http_request_uri
 
-    cache_key = @http_request_method + ' ' + @http_request_uri
-    cache = try_restore_from_cache(cache_key)
-    puts "I have '#{cache_key}': #{cache}"
+    cache_key = [@http_request_method, @http_request_uri].join(' ')
+
+    if @http_request_method == 'GET'
+      cache = try_restore_from_cache(cache_key)
+      puts "I have '#{cache_key}': #{cache}"
+    end
 
     if cache != nil
-      send_cached_response(nil, cache, 'text/html')
+      send_cached_response({'CONTENT_TYPE' => 'application/xml'}, cache)
     else
       forward_request
     end
   end
 
-  def send_cached_response(headers, cache, content_type)
-    send_response(headers, cache, content_type)
+  def send_cached_response(headers, cache)
+    send_response(headers, cache)
   end
 
   def forward_request
-    http = EventMachine::HttpRequest.new('http://warehouse:9191').get
+    forward_header = @headers
+    forward_header['Accept'] = 'text/json'
+
+    if @http_request_method == 'GET'
+      http = EventMachine::HttpRequest.new('http://warehouse:9191').get(:head => forward_header)
+    elsif @http_request_method == 'POST'
+      http = EventMachine::HttpRequest.new('http://warehouse:9191').post(:head => forward_header, :body => convert_to_json(convert_from_xml(@http_post_content)))
+    end
+
     http.errback { p "Uh oh #{http.error}" }
 
     http.callback do
+      response_header = http.response_header
+      response_header['CONTENT_TYPE'] = 'application/xml'
+
+      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
       p http.response_header.status
       p http.response_header
       p http.response
-      content = http.response
-      cache_key = @http_request_method + ' ' + @http_request_uri
+      p content
+
+      cache_key = [@http_request_method, @http_request_uri].join(' ')
       store_in_cache(cache_key, content)
-      send_response(http.response_header, content)
+      send_response(response_header, content)
     end
   end
 
-  def send_response(headers, body, content_type = 'text/html', status = 200)
+  def send_response(headers, body, status = 200)
     response = EM::DelegatedHttpResponse.new(self)
     response.status = status
-    response.content_type content_type
+    response.content_type headers['CONTENT_TYPE']
     response.content = body
     response.send_response
   end
