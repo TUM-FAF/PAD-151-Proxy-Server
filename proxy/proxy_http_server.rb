@@ -25,12 +25,13 @@ class ProxyHttpServer < EM::Connection
     #   @http_post_content
     #   @http_headers
 
+    @headers = @http_headers.split("\x00").map{ |e| e.split(': ', 2) }.to_h
     puts "info"
-    puts @http_headers
+    p @headers
     puts @http_request_method
     puts @http_request_uri
 
-    cache_key = @http_request_method + ' ' + @http_request_uri
+    cache_key = [@http_request_method, @http_request_uri].join(' ')
     cache = try_restore_from_cache(cache_key)
     puts "I have '#{cache_key}': #{cache}"
 
@@ -54,7 +55,7 @@ class ProxyHttpServer < EM::Connection
       p http.response_header
       p http.response
       content = http.response
-      cache_key = @http_request_method + ' ' + @http_request_uri
+      cache_key = [@http_request_method, @http_request_uri].join(' ')
       store_in_cache(cache_key, content)
       send_response(http.response_header, content)
     end
