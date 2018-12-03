@@ -34,8 +34,11 @@ class ProxyHttpServer < EM::Connection
     puts @http_request_uri
 
     cache_key = [@http_request_method, @http_request_uri].join(' ')
-    cache = try_restore_from_cache(cache_key)
-    puts "I have '#{cache_key}': #{cache}"
+
+    if @http_request_method == 'GET'
+      cache = try_restore_from_cache(cache_key)
+      puts "I have '#{cache_key}': #{cache}"
+    end
 
     if cache != nil
       send_cached_response({'CONTENT_TYPE' => 'application/xml'}, cache)
@@ -51,7 +54,14 @@ class ProxyHttpServer < EM::Connection
   def forward_request
     forward_header = @headers
     forward_header['Accept'] = 'text/json'
-    http = EventMachine::HttpRequest.new('http://warehouse:9191').get :head => forward_header
+    http = EventMachine::HttpRequest.new('http://warehouse:9191')
+
+    if @http_request_method == 'GET'
+      http.get :head => forward_header
+    elsif @http_request_method == 'POST'
+      http.post :head => forward_header, body: => convert_to_json(convert_from_xml(@http_post_content))
+    end
+
     http.errback { p "Uh oh #{http.error}" }
 
     http.callback do
