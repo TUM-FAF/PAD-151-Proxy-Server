@@ -3,11 +3,13 @@ require 'em-http-request'
 require 'evma_httpserver'
 require_relative 'http_cache'
 require_relative 'converter'
+require_relative 'xml_validator'
 
 class ProxyHttpServer < EM::Connection
   include EM::HttpServer
   include HttpCache
   include Converter
+  include XMLValidator
 
   def post_init
     super
@@ -40,6 +42,14 @@ class ProxyHttpServer < EM::Connection
       puts "I have '#{cache_key}': #{cache}"
     end
 
+    if @http_request_method == 'POST'
+      is_valid, errors = XMLValidator.validate(@http_post_content, File.read("XSD/post_joke.xsd"))
+      if !is_valid
+        send_response({'CONTENT_TYPE' => 'application/xml'}, nil, 404)
+        return
+      end
+    end
+
     if cache != nil
       send_cached_response({'CONTENT_TYPE' => 'application/xml'}, cache)
     else
@@ -66,8 +76,8 @@ class ProxyHttpServer < EM::Connection
     http.callback do
       response_header = http.response_header
       response_header['CONTENT_TYPE'] = 'application/xml'
-
-      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
+      dummy_content = '{foo: bar}'
+      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(dummy_content))
       p http.response_header.status
       p http.response_header
       p http.response
