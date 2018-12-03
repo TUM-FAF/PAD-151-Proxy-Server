@@ -54,12 +54,11 @@ class ProxyHttpServer < EM::Connection
   def forward_request
     forward_header = @headers
     forward_header['Accept'] = 'text/json'
-    http = EventMachine::HttpRequest.new('http://warehouse:9191')
 
     if @http_request_method == 'GET'
-      http.get :head => forward_header
+      http = EventMachine::HttpRequest.new('http://warehouse:9191').get(:head => forward_header)
     elsif @http_request_method == 'POST'
-      http.post :head => forward_header, body: => convert_to_json(convert_from_xml(@http_post_content))
+      http = EventMachine::HttpRequest.new('http://warehouse:9191').post(:head => forward_header, :body => convert_to_json(convert_from_xml(@http_post_content)))
     end
 
     http.errback { p "Uh oh #{http.error}" }
