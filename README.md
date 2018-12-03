@@ -8,12 +8,11 @@ docker build -t <image-name> .
 docker --rm -it -p <host-port>:<container-port> <image-name> bash
 ```
 
-But when your container depends on another one, you could issue `docker-compose up` command to build and run them.
+But when your container depends on another one, you could issue `docker-compose up --build` command to build and run them.
 
 When making new changes in the source files the images does *not* sync with them, therefore you're expected to restart the desired service with `docker-compose restart <service-name>`.
 
-
-Get the most funny jokes.
+If you want to scale up an image e.g. `warehouse` image, you can issue `docker-compose scale <service-name>=<number-of-replicas>`.
 
 ## Communication
 A client can communicate with servers using the following API:
