@@ -2,10 +2,12 @@ require 'eventmachine'
 require 'em-http-request'
 require 'evma_httpserver'
 require_relative 'http_cache'
+require_relative 'converter'
 
 class ProxyHttpServer < EM::Connection
   include EM::HttpServer
   include HttpCache
+  include Converter
 
   def post_init
     super
@@ -36,35 +38,43 @@ class ProxyHttpServer < EM::Connection
     puts "I have '#{cache_key}': #{cache}"
 
     if cache != nil
-      send_cached_response(nil, cache, 'text/html')
+      send_cached_response({'CONTENT_TYPE' => 'application/xml'}, cache)
     else
       forward_request
     end
   end
 
-  def send_cached_response(headers, cache, content_type)
-    send_response(headers, cache, content_type)
+  def send_cached_response(headers, cache)
+    send_response(headers, cache)
   end
 
   def forward_request
-    http = EventMachine::HttpRequest.new('http://warehouse:9191').get
+    forward_header = @headers
+    forward_header['Accept'] = 'text/json'
+    http = EventMachine::HttpRequest.new('http://warehouse:9191').get :head => forward_header
     http.errback { p "Uh oh #{http.error}" }
 
     http.callback do
+      response_header = http.response_header
+      response_header['CONTENT_TYPE'] = 'application/xml'
+
+      dummy_content = '{foo: bar}'
+      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(dummy_content))
       p http.response_header.status
       p http.response_header
       p http.response
-      content = http.response
+      p content
+
       cache_key = [@http_request_method, @http_request_uri].join(' ')
       store_in_cache(cache_key, content)
-      send_response(http.response_header, content)
+      send_response(response_header, content)
     end
   end
 
-  def send_response(headers, body, content_type = 'text/html', status = 200)
+  def send_response(headers, body, status = 200)
     response = EM::DelegatedHttpResponse.new(self)
     response.status = status
-    response.content_type content_type
+    response.content_type headers['CONTENT_TYPE']
     response.content = body
     response.send_response
   end
