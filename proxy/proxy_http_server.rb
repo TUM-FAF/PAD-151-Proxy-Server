@@ -77,7 +77,7 @@ class ProxyHttpServer < EM::Connection
       response_header = http.response_header
       response_header['CONTENT_TYPE'] = 'application/xml'
       dummy_content = '{foo: bar}'
-      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(dummy_content))
+      content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
       p http.response_header.status
       p http.response_header
       p http.response
