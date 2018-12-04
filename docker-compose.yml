@@ -1,13 +1,22 @@
 version: '2'
 services:
-  cassandra:
+  cassandra1:
     image: cassandra
     volumes:
-      - ./tmp/db:/var/lib/cassandra
+      - ./tmp/db1:/var/lib/cassandra
     ports:
       - "9042:9042"
     expose:
       - 9042
+
+  cassandra2:
+    image: cassandra
+    volumes:
+      - ./tmp/db2:/var/lib/cassandra
+    ports:
+      - "9142:9042"
+    expose:
+      - 9142
 
   redis:
     image: redis
@@ -40,8 +49,9 @@ services:
     expose:
       - 9191
     depends_on:
-      - cassandra
+      - cassandra1
+      - cassandra2
     environment:
-    - WAREHOUSE_PORT=9191
+      - WAREHOUSE_PORT=9191
     restart:
       "always"
