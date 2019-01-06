@@ -6,7 +6,7 @@ class HttpRequest
     @body = body
   end
   
-  def method
+  def http_method
     @method
   end
   

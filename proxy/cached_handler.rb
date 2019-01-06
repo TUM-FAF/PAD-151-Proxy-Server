@@ -1,12 +1,17 @@
 require_relative 'http_request'
 require_relative 'request_handler'
 require_relative 'proxy_handler'
+require_relative 'http_cache'
+
 
 class CachedHandler
   include RequestHandler
-  
-  def initialize
-    @successor = ProxyHandler.new
+  include HttpCache
+    
+  def initialize(em)
+    @em = em
+    init_cache
+    @successor = ProxyHandler.new(em)
   end
 
   def handle_request(http_request)
@@ -19,12 +24,21 @@ class CachedHandler
   end
 
   def can_process?(http_request)
-    false
+    if http_request.http_method == 'POST'
+      return false
+    end
+
+    true
   end
 
   private
-
     def handle(http_request)
-      
+      cache_key = [http_request.http_method, http_request.uri].join(' ')
+      cache = try_restore_from_cache(cache_key)
+      if cache != nil
+        send_response(@em, {'CONTENT_TYPE' => 'application/xml'}, cache)
+      else
+        @successor.handle_request(http_request)
+      end
     end
 end
