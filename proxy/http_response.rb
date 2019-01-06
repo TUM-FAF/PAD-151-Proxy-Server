@@ -4,11 +4,11 @@ class HttpResponse
     @header = header
     @body = body
   end
-  
+
   def status
     @status
   end
-  
+
   def header
     @header
   end

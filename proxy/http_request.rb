@@ -5,11 +5,11 @@ class HttpRequest
     @header = header
     @body = body
   end
-  
+
   def http_method
     @method
   end
-  
+
   def uri
     @uri
   end
