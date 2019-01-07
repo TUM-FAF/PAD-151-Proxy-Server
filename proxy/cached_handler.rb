@@ -35,7 +35,7 @@ class CachedHandler
     end
 
     def handle(http_request)
-      cache_key = [http_request.http_method, http_request.uri].join(' ')
+      cache_key = http_request.uri
       raw_cache = HttpCache.try_restore_from_cache(cache_key)
       if raw_cache != nil
         cached_response = YAML::load(raw_cache)

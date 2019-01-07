@@ -53,7 +53,7 @@ class ProxyHandler
         p response
 
         if http_request.http_method == 'GET'
-          cache_key = [http_request.http_method, http_request.uri].join(' ')
+          cache_key = http_request.uri
           expiration_time = http_request.header['Expires']
           if expiration_time != nil
             expiry = (Time.httpdate(expiration_time) - Time.now).to_i
