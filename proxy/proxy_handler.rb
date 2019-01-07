@@ -29,7 +29,7 @@ class ProxyHandler
       elsif @http_request.http_method == 'POST'
         is_valid, errors = XMLValidator.validate(http_request.body, File.read("XSD/post_joke.xsd"))
         if !is_valid
-          send_response(@em, {'Content-type' => 'application/xml'}, nil, 404)
+          send_response(@em, HttpResponse.new(404, {'Content-type' => 'application/xml'}, nil))
           return
         end
         body = convert_to_json(convert_from_xml(http_request.body))
@@ -57,7 +57,7 @@ class ProxyHandler
           HttpCache.store_in_cache(cache_key, YAML::dump(response))
           puts 'Response stored in cache.'
         end
-        send_response(@em, response.header, response.body)
+        send_response(@em, response)
       end
     end
 end
