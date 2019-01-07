@@ -3,6 +3,7 @@ require_relative 'request_handler'
 require_relative 'proxy_handler'
 require_relative 'http_cache'
 require 'yaml'
+require 'time'
 
 class CachedHandler
   include RequestHandler
@@ -40,10 +41,21 @@ class CachedHandler
       raw_cache = try_restore_from_cache(cache_key)
       if raw_cache != nil
         cached_response = YAML::load(raw_cache)
+        if is_expired?(cached_response)
+          @successor.handle_request(http_request)
+          return
+        end
         cached_response.header['Content-type'] = 'application/xml'
         send_response(@em, cached_response.header, cached_response.body)
       else
         @successor.handle_request(http_request)
+      end
+    end
+
+    def is_expired?(http_request)
+      expiration_time = http_request.header['Expires']
+      if expiration_time != nil
+        return Time.httpdate(expiration_time) < Time.now
       end
     end
 end
