@@ -18,7 +18,7 @@ class CachedHandler
       puts "Handled by cached handler."
       handle(http_request)
     else
-      @successor.handle_request
+      @successor.handle_request(http_request)
     end
   end
 
@@ -28,6 +28,9 @@ class CachedHandler
         return false
       end
 
+      if http_request.header['Cache-control'] == 'no-cache'
+        return false
+      end
       true
     end
 
