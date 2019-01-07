@@ -2,6 +2,7 @@ require_relative 'http_request'
 require_relative 'request_handler'
 require_relative 'proxy_handler'
 require_relative 'http_cache'
+require 'yaml'
 
 class CachedHandler
   include RequestHandler
@@ -36,9 +37,11 @@ class CachedHandler
 
     def handle(http_request)
       cache_key = [http_request.http_method, http_request.uri].join(' ')
-      cache = try_restore_from_cache(cache_key)
-      if cache != nil
-        send_response(@em, {'CONTENT_TYPE' => 'application/xml'}, cache)
+      raw_cache = try_restore_from_cache(cache_key)
+      if raw_cache != nil
+        cached_response = YAML::load(raw_cache)
+        cached_response.header['Content-type'] = 'application/xml'
+        send_response(@em, cached_response.header, cached_response.body)
       else
         @successor.handle_request(http_request)
       end
