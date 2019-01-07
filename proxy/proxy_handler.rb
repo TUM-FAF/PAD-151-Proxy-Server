@@ -54,8 +54,15 @@ class ProxyHandler
 
         if http_request.http_method == 'GET'
           cache_key = [http_request.http_method, http_request.uri].join(' ')
-          HttpCache.store_in_cache(cache_key, YAML::dump(response))
-          puts 'Response stored in cache.'
+          expiration_time = http_request.header['Expires']
+          if expiration_time != nil
+            expiry = (Time.httpdate(expiration_time) - Time.now).to_i
+            HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
+            puts "Response stored in cache for #{expirity} seconds."
+          else
+            HttpCache.store_in_cache(cache_key, YAML::dump(response))
+            puts 'Response stored in cache.'
+          end
         end
         send_response(@em, response)
       end
