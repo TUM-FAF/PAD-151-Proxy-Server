@@ -32,6 +32,7 @@ class ProxyHandler
           send_response(@em, HttpResponse.new(404, {'Content-type' => 'application/xml'}, nil))
           return
         end
+        HttpCache.remove_from_cache(http_request.uri)
         body = convert_to_json(convert_from_xml(http_request.body))
         http = EventMachine::HttpRequest.new('http://warehouse:9191')
               .post(:head => http_request.header, :body => body)
