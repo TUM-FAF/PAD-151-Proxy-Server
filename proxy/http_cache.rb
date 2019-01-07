@@ -14,4 +14,8 @@ class HttpCache
   def self.try_restore_from_cache(key)
     @redis.get(key)
   end
+
+  def self.remove_from_cache(key)
+    @redis.del(key)
+  end
 end
