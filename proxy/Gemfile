@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+
+gem 'eventmachine'
+gem 'eventmachine_httpserver', :require => 'evma_httpserver'
+gem 'em-http-request'
+gem 'redis'
+gem 'nokogiri', '~> 1.6', '>= 1.6.8'
+gem 'crack'
+gem 'gyoku', '~> 1.0'
