@@ -43,7 +43,6 @@ class CachedHandler
           @successor.handle_request(http_request)
           return
         end
-        cached_response.header['Content-type'] = 'application/xml'
         send_response(@em, cached_response)
         puts 'Response retrieved from cache.'
       else

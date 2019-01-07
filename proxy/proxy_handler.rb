@@ -45,8 +45,8 @@ class ProxyHandler
         response_status = http.response_header.status
         response_header = Hash[http.response_header.map{|k, v| [k.capitalize.sub('_','-'), v]}]
         response_header['Content-type'] = 'application/xml'
-        response_content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
-
+        xml_prefix = '<?xml version="1.0" encoding="UTF-8"?>'
+        response_content = xml_prefix + convert_to_xml(convert_from_json(http.response))
         response = HttpResponse.new(response_status, response_header, response_content)
 
         puts 'Response info:'
