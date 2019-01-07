@@ -2,7 +2,9 @@ require_relative 'http_request'
 require_relative 'request_handler'
 require_relative 'xml_validator'
 require_relative 'converter'
+require_relative 'http_response'
 require 'em-http-request'
+require 'yaml'
 
 class ProxyHandler
   include RequestHandler
@@ -27,7 +29,7 @@ class ProxyHandler
       elsif @http_request.http_method == 'POST'
         is_valid, errors = XMLValidator.validate(http_request.body, File.read("XSD/post_joke.xsd"))
         if !is_valid
-          send_response(@em, {'CONTENT_TYPE' => 'application/xml'}, nil, 404)
+          send_response(@em, {'Content-type' => 'application/xml'}, nil, 404)
           return
         end
         body = convert_to_json(convert_from_xml(http_request.body))
@@ -40,17 +42,22 @@ class ProxyHandler
       end
 
       http.callback do
-        response_header = http.response_header
-        response_header['CONTENT_TYPE'] = 'application/xml'
-        content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
-        p http.response_header.status
-        p http.response_header
-        p http.response
-        p content
+        response_status = http.response_header.status
+        response_header = Hash[http.response_header.map{|k, v| [k.capitalize.sub('_','-'), v]}]
+        response_header['Content-type'] = 'application/xml'
+        response_content = '<?xml version="1.0" encoding="UTF-8"?>' + convert_to_xml(convert_from_json(http.response))
 
-        # cache_key = [@http_request_method, @http_request_uri].join(' ')
-        # store_in_cache(cache_key, content)
-        send_response(@em, response_header, content)
+        response = HttpResponse.new(response_status, response_header, response_content)
+
+        puts 'Response info:'
+        p response
+
+        if http_request.http_method == 'GET'
+          cache_key = [http_request.http_method, http_request.uri].join(' ')
+          HttpCache.store_in_cache(cache_key, YAML::dump(response))
+          puts 'Response stored in cache.'
+        end
+        send_response(@em, response.header, response.body)
       end
     end
 end
