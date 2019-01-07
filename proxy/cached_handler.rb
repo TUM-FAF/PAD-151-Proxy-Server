@@ -7,11 +7,9 @@ require 'time'
 
 class CachedHandler
   include RequestHandler
-  include HttpCache
 
   def initialize(em)
     @em = em
-    init_cache
     @successor = ProxyHandler.new(em)
   end
 
@@ -38,7 +36,7 @@ class CachedHandler
 
     def handle(http_request)
       cache_key = [http_request.http_method, http_request.uri].join(' ')
-      raw_cache = try_restore_from_cache(cache_key)
+      raw_cache = HttpCache.try_restore_from_cache(cache_key)
       if raw_cache != nil
         cached_response = YAML::load(raw_cache)
         if is_expired?(cached_response)

@@ -9,6 +9,7 @@ class ProxyHttpServer < EM::Connection
 
   def post_init
     super
+    HttpCache.init_cache
     @request_handler = CachedHandler.new(self)
     no_environment_strings
   end

@@ -1,17 +1,17 @@
 require 'redis'
 
-module HttpCache
+class HttpCache
 
-  def init_cache
+  def self.init_cache
     @redis = Redis.new(host: 'redis', port: 6379)
   end
 
-  def store_in_cache(key, value, expiry = 10)
+  def self.store_in_cache(key, value, expiry = 10)
     @redis.set(key, value)
     @redis.expire(key, expiry)
   end
 
-  def try_restore_from_cache(key)
+  def self.try_restore_from_cache(key)
     @redis.get(key)
   end
 end
