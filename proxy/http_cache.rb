@@ -15,4 +15,3 @@ module HttpCache
     @redis.get(key)
   end
 end
-
