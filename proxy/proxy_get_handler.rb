@@ -28,11 +28,16 @@ class ProxyGetHandler
     puts 'Response info:'
     p response
 
-    cache_key = request.uri
-    expiry = @policy.get_expiration_time(request)
-    HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
-
+    update_cache_if_needed(request, response)
     send_response(@em, response)    
   end
-  
+
+
+  def update_cache_if_needed(request, response)
+    cache_key = request.uri
+    if @policy.should_update_cache?(cache_key, request)
+      expiry = @policy.get_expiration_time(request)
+      HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
+    end
+  end
 end

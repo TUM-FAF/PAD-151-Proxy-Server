@@ -1,5 +1,6 @@
 require_relative 'http_request'
 require_relative 'http_response'
+require_relative 'http_cache'
 require 'time'
 
 class CachePolicy
@@ -37,5 +38,19 @@ class CachePolicy
       return (Time.httpdate(expiration_time) - Time.now).to_i
     end
     @default_expiry
+  end
+
+  def should_update_cache?(key, response)
+    raw_cache = HttpCache.try_restore_from_cache(key)
+    if raw_cache != nil
+      cached_response = YAML::load(raw_cache)
+      cached_time = cached_response.header['Last-Modified']
+      response_time = response.header['Last-Modified']
+      if cached_time == nil or response_time == nil
+        return true
+      end
+      return Time.httpdate(cached_time) < Time.httpdate(response_time)
+    end
+    true
   end
 end
