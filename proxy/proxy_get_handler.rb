@@ -1,0 +1,42 @@
+require_relative 'http_response'
+require_relative 'converter'
+require_relative 'request_handler'
+require 'em-http-request'
+
+class ProxyGetHandler
+  include Converter
+  include RequestHandler
+
+  def initialize(em)
+    @em = em
+  end
+  
+  def execute(request)
+    EventMachine::HttpRequest.new('http://warehouse:9191').get(:head => request.header)
+  end
+
+  def callback(http, request)
+    response_status = http.response_header.status
+    response_header = Hash[http.response_header.map{|k, v| [k.split('_').map{|k| k.capitalize}.join('-'), v]}]
+    response_header['Content-Type'] = 'application/xml'
+    xml_prefix = '<?xml version="1.0" encoding="UTF-8"?>'
+    response_content = xml_prefix + convert_to_xml(convert_from_json(http.response))
+    response = HttpResponse.new(response_status, response_header, response_content)
+
+    puts 'Response info:'
+    p response
+
+    cache_key = request.uri
+    expiration_time = request.header['Expires']
+    if expiration_time != nil
+      expiry = (Time.httpdate(expiration_time) - Time.now).to_i
+      HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
+      puts "Response stored in cache for #{expirity} seconds."
+    else
+      HttpCache.store_in_cache(cache_key, YAML::dump(response))
+      puts 'Response stored in cache.'
+    end
+    send_response(@em, response)    
+  end
+  
+end
