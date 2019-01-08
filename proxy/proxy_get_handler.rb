@@ -1,6 +1,7 @@
 require_relative 'http_response'
 require_relative 'converter'
 require_relative 'request_handler'
+require_relative 'cache_policy'
 require 'em-http-request'
 
 class ProxyGetHandler
@@ -9,6 +10,7 @@ class ProxyGetHandler
 
   def initialize(em)
     @em = em
+    @policy = CachePolicy.new
   end
   
   def execute(request)
@@ -27,15 +29,9 @@ class ProxyGetHandler
     p response
 
     cache_key = request.uri
-    expiration_time = request.header['Expires']
-    if expiration_time != nil
-      expiry = (Time.httpdate(expiration_time) - Time.now).to_i
-      HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
-      puts "Response stored in cache for #{expirity} seconds."
-    else
-      HttpCache.store_in_cache(cache_key, YAML::dump(response))
-      puts 'Response stored in cache.'
-    end
+    expiry = @policy.get_expiration_time(request)
+    HttpCache.store_in_cache(cache_key, YAML::dump(response), expiry)
+
     send_response(@em, response)    
   end
   

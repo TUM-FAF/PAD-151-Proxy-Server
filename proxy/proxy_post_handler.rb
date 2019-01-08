@@ -38,5 +38,5 @@ class ProxyPostHandler
     HttpCache.remove_from_cache(request.uri)
     send_response(@em, response)
   end
-  
+
 end
