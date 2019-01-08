@@ -1,4 +1,5 @@
 require_relative 'http_request'
+require_relative 'http_response'
 require_relative 'request_handler'
 require_relative 'proxy_handler'
 require_relative 'http_cache'
@@ -39,7 +40,7 @@ class CachedHandler
       raw_cache = HttpCache.try_restore_from_cache(cache_key)
       if raw_cache != nil
         cached_response = YAML::load(raw_cache)
-        if is_expired?(cached_response)
+        if is_too_old?(http_request, cached_response)
           @successor.handle_request(http_request)
           return
         end
@@ -50,10 +51,14 @@ class CachedHandler
       end
     end
 
-    def is_expired?(http_request)
-      expiration_time = http_request.header['Expires']
-      if expiration_time != nil
-        return Time.httpdate(expiration_time) < Time.now
+    def is_too_old?(http_request, cached_response)
+      delta_seconds = http_request.header['Cache-Control']&.split('=')[1].to_i \
+        if http_request.header['Cache-Control']&.start_with?('max-age')
+
+      last_modified = cached_response.header['Last-Modified']
+      if delta_seconds != nil and last_modified != nil
+        return Time.now - Time.httpdate(last_modified) > delta_seconds
       end
+      false
     end
 end
