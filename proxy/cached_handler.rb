@@ -28,7 +28,7 @@ class CachedHandler
         return false
       end
 
-      if http_request.header['Cache-control'] == 'no-cache'
+      if http_request.header['Cache-Control'] == 'no-cache'
         return false
       end
       true

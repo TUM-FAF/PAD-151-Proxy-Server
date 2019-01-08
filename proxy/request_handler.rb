@@ -9,7 +9,7 @@ module RequestHandler
   def send_response(em, http_response)
     response = EM::DelegatedHttpResponse.new(em)
     response.status = http_response.status
-    response.content_type http_response.header['Content-type']
+    response.content_type http_response.header['Content-Type']
     response.content = http_response.body
     response.send_response
   end

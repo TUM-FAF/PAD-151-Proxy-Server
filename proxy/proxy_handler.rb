@@ -29,7 +29,7 @@ class ProxyHandler
       elsif @http_request.http_method == 'POST'
         is_valid, errors = XMLValidator.validate(http_request.body, File.read("XSD/post_joke.xsd"))
         if !is_valid
-          send_response(@em, HttpResponse.new(404, {'Content-type' => 'application/xml'}, nil))
+          send_response(@em, HttpResponse.new(404, {'Content-Type' => 'application/xml'}, nil))
           return
         end
         HttpCache.remove_from_cache(http_request.uri)
@@ -44,8 +44,8 @@ class ProxyHandler
 
       http.callback do
         response_status = http.response_header.status
-        response_header = Hash[http.response_header.map{|k, v| [k.capitalize.sub('_','-'), v]}]
-        response_header['Content-type'] = 'application/xml'
+        response_header = Hash[http.response_header.map{|k, v| [k.split('_').map{|k| k.capitalize}.join('-'), v]}]
+        response_header['Content-Type'] = 'application/xml'
         xml_prefix = '<?xml version="1.0" encoding="UTF-8"?>'
         response_content = xml_prefix + convert_to_xml(convert_from_json(http.response))
         response = HttpResponse.new(response_status, response_header, response_content)
