@@ -16,7 +16,7 @@ class ProxyHandler
   end
 
   def handle_request(http_request)
-    puts "Handled by proxy handler."
+    puts "Handled by #{self.class.to_s}."
     handle(http_request)
   end
 

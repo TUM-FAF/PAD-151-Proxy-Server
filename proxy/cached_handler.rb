@@ -16,7 +16,7 @@ class CachedHandler
 
   def handle_request(http_request)
     if can_process?(http_request)
-      puts "Handled by cached handler."
+      puts "Handled by #{self.class.to_s}."
       handle(http_request)
     else
       @successor.handle_request(http_request)
@@ -41,12 +41,14 @@ class CachedHandler
       if raw_cache != nil
         cached_response = YAML::load(raw_cache)
         if is_too_old?(http_request, cached_response)
+          puts "Passed to #{@successor.class.to_s}."
           @successor.handle_request(http_request)
           return
         end
         send_response(@em, cached_response)
         puts 'Response retrieved from cache.'
       else
+        puts "Passed to #{@successor.class.to_s}."
         @successor.handle_request(http_request)
       end
     end
