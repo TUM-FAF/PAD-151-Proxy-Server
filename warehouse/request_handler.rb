@@ -17,14 +17,14 @@ class RequestHandler
 
     if request.http_method == 'POST'
       puts 'Try create a joke'
-      # @db.create(request.body)
+      @db.create(request.body)
     end
 
     response_status = 200
     response_header = {
       'Content-Type' => 'application/json'
     }
-    response_content = '{"foo": ' + (@db.all.to_json) + '}'
+    response_content = @db.all.to_json
     response = HttpResponse.new(response_status, response_header, response_content)
 
     puts 'Response info:'
