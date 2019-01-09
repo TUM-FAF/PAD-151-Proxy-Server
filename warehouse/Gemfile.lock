@@ -3,6 +3,8 @@ GEM
   specs:
     cassandra-driver (3.2.3)
       ione (~> 1.2)
+    eventmachine (1.2.7)
+    eventmachine_httpserver (0.2.1)
     ione (1.2.4)
 
 PLATFORMS
@@ -10,6 +12,8 @@ PLATFORMS
 
 DEPENDENCIES
   cassandra-driver
+  eventmachine
+  eventmachine_httpserver
 
 BUNDLED WITH
-   1.17.1
+   1.17.3
