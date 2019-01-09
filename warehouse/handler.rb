@@ -1,7 +1,7 @@
 require_relative 'http_request'
 require_relative 'http_response'
 
-module RequestHandler
+module Handler
   def handle_request(http_request)
     raise NotImplementedError
   end

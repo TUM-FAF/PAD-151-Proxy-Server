@@ -1,3 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'cassandra-driver'
+
+gem 'eventmachine'
+gem 'eventmachine_httpserver', :require => 'evma_httpserver'

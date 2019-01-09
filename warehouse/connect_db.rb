@@ -27,22 +27,21 @@ class ConnectDB
     end
     response[:hosts] = hosts
     result = []
-    future = @session.execute_async('SELECT * FROM jokes')
-    future.on_success do |rows|
-      rows.each do |row|
+    @session.execute('SELECT * FROM jokes').each do |row|
         result << row
-      end
     end
-    future.join
     response[:result] = result
     response
   end
 
-  private
-
   def create(json)
     joke = JSON.parse(json)
-    @session.execute("INSERT INTO jokes (joke_id, author, text, joke_rating) VALUES (#{@counter}, '#{joke[:author]}', '#{joke[:text]}', 0) IF NOT EXISTS")
+    puts 'JOKE'
+    p joke
+    p joke['joke']['author']
+    p joke['joke']['text']
+
+    @session.execute("INSERT INTO jokes (joke_id, author, text, joke_rating) VALUES (#{@counter}, '#{joke['joke']['author']}', '#{joke['joke']['text']}', 0)")
     @counter += 1
   end
 

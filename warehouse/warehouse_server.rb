@@ -1,17 +1,18 @@
 require 'eventmachine'
-require 'em-http-request'
 require 'evma_httpserver'
-require_relative 'cached_handler'
+require_relative 'connect_db'
 require_relative 'http_request'
+require_relative 'http_response'
+require_relative 'request_handler'
 
-class ProxyHttpServer < EM::Connection
+class WarehouseServer < EM::Connection
   include EM::HttpServer
 
   def post_init
     super
-    HttpCache.init_cache
-    @request_handler = CachedHandler.new(self)
+    @db = ConnectDB.new('faf')
     no_environment_strings
+    @handler = RequestHandler.new(self, @db)
   end
 
   def process_http_request
@@ -21,6 +22,6 @@ class ProxyHttpServer < EM::Connection
     puts "Request info:"
     p @request
 
-    @request_handler.handle_request(@request)
+    @handler.handle(@request)
   end
 end
