@@ -38,8 +38,6 @@ class ConnectDB
     response
   end
 
-  private
-
   def create(json)
     joke = JSON.parse(json)
     @session.execute("INSERT INTO jokes (joke_id, author, text, joke_rating) VALUES (#{@counter}, '#{joke[:author]}', '#{joke[:text]}', 0) IF NOT EXISTS")
